@@ -3,13 +3,13 @@
 # Copies SSH keys from backup location to user's .ssh directory
 
 - name: Check if SSH keys source directory exists
-  stat:
+  ansible.builtin.stat:
     path: "{{ ssh_keys_source }}"
   register: ssh_source_dir
   tags: ssh
 
 - name: Display warning if source directory not found
-  debug:
+  ansible.builtin.debug:
     msg:
       - "WARNING: SSH keys source directory not found!"
       - "Path: {{ ssh_keys_source }}"
@@ -22,7 +22,7 @@
   tags: ssh
   block:
     - name: Display source directory info
-      debug:
+      ansible.builtin.debug:
         msg: "Found SSH keys source directory: {{ ssh_keys_source }}"
 
     - name: Create .ssh directory
@@ -37,7 +37,7 @@
       find:
         paths: "{{ ssh_keys_source }}"
         file_type: file
-        hidden: yes
+        hidden: true
       register: ssh_files_found
       when: ssh_files_to_copy | length == 0
 
@@ -48,7 +48,7 @@
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
         mode: preserve
-        remote_src: yes
+        remote_src: true
       loop: "{{ ssh_files_found.files }}"
       when:
         - ssh_files_to_copy | length == 0
@@ -62,7 +62,7 @@
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
         mode: preserve
-        remote_src: yes
+        remote_src: true
       loop: "{{ ssh_files_to_copy }}"
       when: ssh_files_to_copy | length > 0
       no_log: true  # Don't log file names for security
@@ -106,7 +106,7 @@
       when: public_keys.files is defined
 
     - name: Check if SSH config exists
-      stat:
+      ansible.builtin.stat:
         path: "/home/{{ target_user }}/.ssh/config"
       register: ssh_config_file
 
@@ -119,7 +119,7 @@
       when: ssh_config_file.stat.exists
 
     - name: Check if known_hosts exists
-      stat:
+      ansible.builtin.stat:
         path: "/home/{{ target_user }}/.ssh/known_hosts"
       register: known_hosts_file
 
@@ -132,7 +132,7 @@
       when: known_hosts_file.stat.exists
 
     - name: Check if authorized_keys exists
-      stat:
+      ansible.builtin.stat:
         path: "/home/{{ target_user }}/.ssh/authorized_keys"
       register: authorized_keys_file
 
@@ -170,7 +170,7 @@
           else
               start_agent;
           fi
-        create: yes
+        create: true
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
         mode: '0644'
@@ -221,14 +221,14 @@
                   ~/.ssh/load-keys.sh 2>/dev/null
               fi
           fi
-        create: yes
+        create: true
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
         mode: '0644'
       when: ssh_agent_autoload_keys | default(true)
 
     - name: Display completion message
-      debug:
+      ansible.builtin.debug:
         msg:
           - "SSH keys have been copied successfully!"
           - "Location: /home/{{ target_user }}/.ssh/"

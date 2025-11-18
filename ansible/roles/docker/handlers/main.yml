@@ -2,8 +2,8 @@
 # Docker role - handlers
 
 - name: restart docker
-  systemd:
+  ansible.builtin.systemd:
     name: docker
     state: restarted
-    daemon_reload: yes
-  ignore_errors: yes  # WSL might not use systemd
+    daemon_reload: true
+  ignore_errors: true  # WSL might not use systemd

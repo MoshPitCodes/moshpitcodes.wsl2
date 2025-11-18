@@ -3,13 +3,13 @@
 # Copies GPG keys from backup location to user's .gnupg directory
 
 - name: Check if GPG keys source directory exists
-  stat:
+  ansible.builtin.stat:
     path: "{{ gpg_keys_source }}"
   register: gpg_source_dir
   tags: gpg
 
 - name: Display warning if source directory not found
-  debug:
+  ansible.builtin.debug:
     msg:
       - "WARNING: GPG keys source directory not found!"
       - "Path: {{ gpg_keys_source }}"
@@ -22,7 +22,7 @@
   tags: gpg
   block:
     - name: Display source directory info
-      debug:
+      ansible.builtin.debug:
         msg: "Found GPG keys source directory: {{ gpg_keys_source }}"
 
     - name: Install GPG and rsync if not present
@@ -62,7 +62,7 @@
           - "pubring.kbx"
           - "trustdb.gpg"
         file_type: file
-        recurse: yes
+        recurse: true
       register: gpg_private_files
 
     - name: Set strict permissions on GPG files
@@ -81,10 +81,10 @@
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
         mode: "{{ gpg_directory_mode }}"
-        recurse: no
+        recurse: false
 
     - name: Check if private-keys-v1.d exists
-      stat:
+      ansible.builtin.stat:
         path: "/home/{{ target_user }}/.gnupg/private-keys-v1.d"
       register: private_keys_dir
 
@@ -98,7 +98,7 @@
       when: private_keys_dir.stat.exists
 
     - name: Check if openpgp-revocs.d exists
-      stat:
+      ansible.builtin.stat:
         path: "/home/{{ target_user }}/.gnupg/openpgp-revocs.d"
       register: revocs_dir
 
@@ -120,31 +120,31 @@
           default-cache-ttl 600
           max-cache-ttl 7200
           enable-ssh-support
-        create: yes
+        create: true
         owner: "{{ target_user }}"
         group: "{{ target_user }}"
         mode: '0600'
       when: gpg_enable_ssh_support | default(false)
 
     - name: Reload GPG agent
-      become: yes
+      become: true
       become_user: "{{ target_user }}"
       shell: |
         gpgconf --kill gpg-agent
         gpg-agent --daemon 2>/dev/null || true
       changed_when: false
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: List GPG keys (as user)
-      become: yes
+      become: true
       become_user: "{{ target_user }}"
       command: gpg --list-secret-keys
       register: gpg_list_keys
       changed_when: false
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Display GPG keys info
-      debug:
+      ansible.builtin.debug:
         msg:
           - "GPG keys have been copied successfully!"
           - "Location: /home/{{ target_user }}/.gnupg/"

@@ -3,27 +3,27 @@
 # Sets up common packages and configurations for all systems
 
 - name: Ensure system is up to date
-  apt:
+  ansible.builtin.apt:
     upgrade: dist
-    update_cache: yes
+    update_cache: true
     cache_valid_time: 3600
   tags: update
 
 - name: Install common system packages
-  apt:
+  ansible.builtin.apt:
     name: "{{ common_packages }}"
     state: present
   tags: packages
 
 - name: Install extra packages if defined
-  apt:
+  ansible.builtin.apt:
     name: "{{ extra_packages }}"
     state: present
   when: extra_packages is defined and extra_packages | length > 0
   tags: packages
 
 - name: Flatten git_config dictionary
-  set_fact:
+  ansible.builtin.set_fact:
     git_config_flat: >-
       {%- set result = {} -%}
       {%- for section, settings in git_config.items() -%}
@@ -40,18 +40,18 @@
   tags: git
 
 - name: Configure git settings
-  git_config:
+  community.general.git_config:
     name: "{{ item.key }}"
     value: "{{ item.value | string }}"
     scope: global
   loop: "{{ git_config_flat | default({}) | dict2items }}"
-  become: yes
+  become: true
   become_user: "{{ target_user }}"
   when: git_config_flat is defined and git_config_flat | length > 0
   tags: git
 
 - name: Create bash aliases
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "/home/{{ target_user }}/.bashrc"
     marker: "# {mark} ANSIBLE MANAGED BASH ALIASES"
     block: |
@@ -59,7 +59,7 @@
       {% for alias_name, alias_command in bash_aliases.items() %}
       alias {{ alias_name }}='{{ alias_command }}'
       {% endfor %}
-    create: yes
+    create: true
     owner: "{{ target_user }}"
     group: "{{ target_user }}"
     mode: '0644'
@@ -67,7 +67,7 @@
   tags: shell
 
 - name: Add environment variables to .bashrc
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "/home/{{ target_user }}/.bashrc"
     marker: "# {mark} ANSIBLE MANAGED ENVIRONMENT VARIABLES"
     block: |
@@ -75,7 +75,7 @@
       {% for var_name, var_value in environment_variables.items() %}
       export {{ var_name }}="{{ var_value }}"
       {% endfor %}
-    create: yes
+    create: true
     owner: "{{ target_user }}"
     group: "{{ target_user }}"
     mode: '0644'
@@ -83,16 +83,16 @@
   tags: shell
 
 - name: Configure vm.swappiness
-  sysctl:
+  ansible.posix.sysctl:
     name: vm.swappiness
     value: "{{ vm_swappiness | default(10) }}"
     state: present
-    sysctl_set: yes
+    sysctl_set: true
   when: vm_swappiness is defined
   tags: performance
 
 - name: Setup unattended upgrades
-  apt:
+  ansible.builtin.apt:
     name:
       - unattended-upgrades
       - apt-listchanges
@@ -101,7 +101,7 @@
   tags: security
 
 - name: Configure unattended upgrades
-  template:
+  ansible.builtin.template:
     src: 50unattended-upgrades.j2
     dest: /etc/apt/apt.conf.d/50unattended-upgrades
     mode: '0644'
@@ -109,7 +109,7 @@
   tags: security
 
 - name: Ensure user shell is set correctly
-  user:
+  ansible.builtin.user:
     name: "{{ target_user }}"
     shell: "{{ user_shell }}"
   tags: shell
