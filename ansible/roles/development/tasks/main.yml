@@ -71,10 +71,9 @@
   tags: nodejs
 
 - name: Check if Go is installed
-  command: go version
+  ansible.builtin.stat:
+    path: /usr/local/go/bin/go
   register: go_installed
-  ignore_errors: true
-  changed_when: false
   when: install_golang | default(false)
   tags: golang
 
@@ -85,7 +84,7 @@
     mode: '0644'
   when:
     - install_golang | default(false)
-    - go_installed is failed
+    - not go_installed.stat.exists
   tags: golang
 
 - name: Remove old Go installation
@@ -94,7 +93,7 @@
     state: absent
   when:
     - install_golang | default(false)
-    - go_installed is failed
+    - not go_installed.stat.exists
   tags: golang
 
 - name: Extract Go archive
@@ -104,7 +103,7 @@
     remote_src: true
   when:
     - install_golang | default(false)
-    - go_installed is failed
+    - not go_installed.stat.exists
   tags: golang
 
 - name: Add Go to PATH
