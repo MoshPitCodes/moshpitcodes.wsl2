@@ -3,25 +3,25 @@
 # Sets up development tools and programming language environments
 
 - name: Install development packages
-  apt:
+  ansible.builtin.apt:
     name: "{{ development_packages }}"
     state: present
   tags: packages
 
 - name: Install Python packages
-  apt:
+  ansible.builtin.apt:
     name: "{{ python_packages }}"
     state: present
   when: install_python | default(true)
   tags: python
 
 - name: Install Python pip packages (user space)
-  pip:
+  ansible.builtin.pip:
     name: "{{ pip_packages }}"
     state: present
     executable: pip3
     extra_args: "--user --break-system-packages"
-  become: yes
+  become: true
   become_user: "{{ target_user }}"
   when:
     - install_python | default(true)
@@ -30,13 +30,13 @@
   tags: python
 
 - name: Extract Node.js major version
-  set_fact:
+  ansible.builtin.set_fact:
     nodejs_major_version: "{{ nodejs_version.split('.')[0] }}"
   when: install_nodejs | default(false)
   tags: nodejs
 
 - name: Download NodeSource setup script
-  get_url:
+  ansible.builtin.get_url:
     url: "https://deb.nodesource.com/setup_{{ nodejs_major_version }}.x"
     dest: /tmp/nodesource_setup.sh
     mode: '0755'
@@ -51,17 +51,17 @@
   tags: nodejs
 
 - name: Install Node.js
-  apt:
+  ansible.builtin.apt:
     name: nodejs
     state: present
-    update_cache: yes
+    update_cache: true
   when: install_nodejs | default(false)
   tags: nodejs
 
 - name: Install npm global packages
-  npm:
+  community.general.npm:
     name: "{{ item }}"
-    global: yes
+    global: true
     state: present
   loop: "{{ npm_global_packages }}"
   when:
@@ -73,13 +73,13 @@
 - name: Check if Go is installed
   command: go version
   register: go_installed
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
   when: install_golang | default(false)
   tags: golang
 
 - name: Download Go
-  get_url:
+  ansible.builtin.get_url:
     url: "https://go.dev/dl/go{{ golang_version }}.linux-amd64.tar.gz"
     dest: "/tmp/go{{ golang_version }}.linux-amd64.tar.gz"
     mode: '0644'
@@ -89,7 +89,7 @@
   tags: golang
 
 - name: Remove old Go installation
-  file:
+  ansible.builtin.file:
     path: /usr/local/go
     state: absent
   when:
@@ -98,17 +98,17 @@
   tags: golang
 
 - name: Extract Go archive
-  unarchive:
+  ansible.builtin.unarchive:
     src: "/tmp/go{{ golang_version }}.linux-amd64.tar.gz"
     dest: /usr/local
-    remote_src: yes
+    remote_src: true
   when:
     - install_golang | default(false)
     - go_installed is failed
   tags: golang
 
 - name: Add Go to PATH
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "/home/{{ target_user }}/.bashrc"
     marker: "# {mark} ANSIBLE MANAGED GO PATH"
     block: |
@@ -116,7 +116,7 @@
       export PATH=$PATH:/usr/local/go/bin
       export GOPATH=$HOME/go
       export PATH=$PATH:$GOPATH/bin
-    create: yes
+    create: true
     owner: "{{ target_user }}"
     group: "{{ target_user }}"
     mode: '0644'
@@ -128,19 +128,19 @@
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   args:
     creates: "/home/{{ target_user }}/.cargo/bin/rustc"
-  become: yes
+  become: true
   become_user: "{{ target_user }}"
   when: install_rust | default(false)
   tags: rust
 
 - name: Add Rust to PATH
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "/home/{{ target_user }}/.bashrc"
     marker: "# {mark} ANSIBLE MANAGED RUST PATH"
     block: |
       # Rust programming language
       . "$HOME/.cargo/env"
-    create: yes
+    create: true
     owner: "{{ target_user }}"
     group: "{{ target_user }}"
     mode: '0644'
@@ -148,7 +148,7 @@
   tags: rust
 
 - name: Install Ruby and development headers
-  apt:
+  ansible.builtin.apt:
     name:
       - ruby-full
       - ruby-dev
@@ -157,14 +157,14 @@
   tags: ruby
 
 - name: Configure gem installation directory for user
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "/home/{{ target_user }}/.bashrc"
     marker: "# {mark} ANSIBLE MANAGED RUBY GEMS PATH"
     block: |
       # Ruby gems
       export GEM_HOME="$HOME/.gem"
       export PATH="$HOME/.gem/bin:$PATH"
-    create: yes
+    create: true
     owner: "{{ target_user }}"
     group: "{{ target_user }}"
     mode: '0644'
@@ -178,7 +178,7 @@
 - name: Check if Doppler is installed
   command: doppler --version
   register: doppler_installed
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
   when: install_doppler | default(false)
   tags: doppler
@@ -212,7 +212,7 @@
 
     - name: Update apt cache
       apt:
-        update_cache: yes
+        update_cache: true
 
     - name: Install Doppler CLI
       apt:
@@ -227,7 +227,7 @@
   tags: doppler
 
 - name: Display Doppler version
-  debug:
+  ansible.builtin.debug:
     msg: "Doppler CLI installed: {{ doppler_version_output.stdout }}"
   when:
     - install_doppler | default(false)

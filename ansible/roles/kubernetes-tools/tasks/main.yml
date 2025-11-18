@@ -3,7 +3,7 @@
 # Installs Terraform, kubectl, and talosctl
 
 - name: Determine system architecture
-  set_fact:
+  ansible.builtin.set_fact:
     system_arch: "{{ architecture_map[ansible_architecture] | default('amd64') }}"
   tags: always
 
@@ -14,18 +14,18 @@
 - name: Check if Terraform is installed
   command: terraform version
   register: terraform_installed
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
   when: install_terraform | default(true)
   tags: terraform
 
 - name: Get installed Terraform version
-  set_fact:
+  ansible.builtin.set_fact:
     installed_terraform_version: "{{ terraform_installed.stdout | regex_search('Terraform v([0-9.]+)', '\\1') | first }}"
   when:
     - install_terraform | default(true)
     - terraform_installed is succeeded
-  ignore_errors: yes
+  ignore_errors: true
   tags: terraform
 
 - name: Install/Update Terraform
@@ -44,7 +44,7 @@
       unarchive:
         src: "/tmp/terraform_{{ terraform_version }}_linux_{{ system_arch }}.zip"
         dest: "{{ bin_directory }}"
-        remote_src: yes
+        remote_src: true
         mode: '0755'
 
     - name: Clean up Terraform zip file
@@ -60,7 +60,7 @@
   tags: terraform
 
 - name: Display Terraform version
-  debug:
+  ansible.builtin.debug:
     msg: "Terraform installed: {{ terraform_version_output.stdout_lines[0] }}"
   when:
     - install_terraform | default(true)
@@ -74,18 +74,18 @@
 - name: Check if kubectl is installed
   command: kubectl version --client
   register: kubectl_installed
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
   when: install_kubectl | default(true)
   tags: kubectl
 
 - name: Get installed kubectl version
-  set_fact:
+  ansible.builtin.set_fact:
     installed_kubectl_version: "{{ kubectl_installed.stdout | regex_search('Client Version: v([0-9.]+)', '\\1') | first }}"
   when:
     - install_kubectl | default(true)
     - kubectl_installed is succeeded
-  ignore_errors: yes
+  ignore_errors: true
   tags: kubectl
 
 - name: Install/Update kubectl
@@ -125,7 +125,7 @@
   tags: kubectl
 
 - name: Display kubectl version
-  debug:
+  ansible.builtin.debug:
     msg: "kubectl installed: {{ kubectl_version_output.stdout_lines[0] }}"
   when:
     - install_kubectl | default(true)
@@ -139,18 +139,18 @@
 - name: Check if talosctl is installed
   command: talosctl version --client
   register: talosctl_installed
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
   when: install_talosctl | default(true)
   tags: talosctl
 
 - name: Get installed talosctl version
-  set_fact:
+  ansible.builtin.set_fact:
     installed_talosctl_version: "{{ talosctl_installed.stdout | regex_search('Tag:\\s+v([0-9.]+)', '\\1') | first }}"
   when:
     - install_talosctl | default(true)
     - talosctl_installed is succeeded
-  ignore_errors: yes
+  ignore_errors: true
   tags: talosctl
 
 - name: Install/Update talosctl
@@ -173,7 +173,7 @@
   tags: talosctl
 
 - name: Display talosctl version
-  debug:
+  ansible.builtin.debug:
     msg: "talosctl installed: {{ talosctl_version_output.stdout_lines | select('search', 'Tag:') | first }}"
   when:
     - install_talosctl | default(true)
@@ -185,7 +185,7 @@
 # ============================================================================
 
 - name: Setup kubectl bash completion
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "/home/{{ target_user }}/.bashrc"
     marker: "# {mark} ANSIBLE MANAGED KUBECTL COMPLETION"
     block: |
@@ -195,7 +195,7 @@
         complete -o default -F __start_kubectl k
         alias k=kubectl
       fi
-    create: yes
+    create: true
     owner: "{{ target_user }}"
     group: "{{ target_user }}"
     mode: '0644'
@@ -203,7 +203,7 @@
   tags: kubectl
 
 - name: Setup talosctl bash completion
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "/home/{{ target_user }}/.bashrc"
     marker: "# {mark} ANSIBLE MANAGED TALOSCTL COMPLETION"
     block: |
@@ -211,7 +211,7 @@
       if command -v talosctl &> /dev/null; then
         source <(talosctl completion bash)
       fi
-    create: yes
+    create: true
     owner: "{{ target_user }}"
     group: "{{ target_user }}"
     mode: '0644'
@@ -219,7 +219,7 @@
   tags: talosctl
 
 - name: Setup terraform bash completion
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "/home/{{ target_user }}/.bashrc"
     marker: "# {mark} ANSIBLE MANAGED TERRAFORM COMPLETION"
     block: |
@@ -227,7 +227,7 @@
       if command -v terraform &> /dev/null; then
         complete -C $(which terraform) terraform
       fi
-    create: yes
+    create: true
     owner: "{{ target_user }}"
     group: "{{ target_user }}"
     mode: '0644'

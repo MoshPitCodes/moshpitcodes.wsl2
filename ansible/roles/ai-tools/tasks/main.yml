@@ -8,18 +8,18 @@
 - name: Check if Gemini CLI is installed
   command: gemini --version
   register: gemini_installed
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
-  become: yes
+  become: true
   become_user: '{{ target_user }}'
   when: install_gemini_cli | default(true)
   tags: gemini
 
 - name: Install/Update Gemini CLI
-  npm:
+  community.general.npm:
       name: '{{ gemini_cli_package }}'
       version: '{{ gemini_cli_version }}'
-      global: yes
+      global: true
       state: "{{ 'latest' if gemini_cli_version == 'latest' else 'present' }}"
   when:
       - install_gemini_cli | default(true)
@@ -30,13 +30,13 @@
   command: gemini --version
   register: gemini_version
   changed_when: false
-  become: yes
+  become: true
   become_user: '{{ target_user }}'
   when: install_gemini_cli | default(true)
   tags: gemini
 
 - name: Display Gemini CLI version
-  debug:
+  ansible.builtin.debug:
       msg: 'Gemini CLI installed: {{ gemini_version.stdout_lines[0] }}'
   when:
       - install_gemini_cli | default(true)
@@ -45,7 +45,7 @@
   tags: gemini
 
 - name: Add Gemini CLI information to .bashrc
-  blockinfile:
+  ansible.builtin.blockinfile:
       path: '/home/{{ target_user }}/.bashrc'
       marker: '# {mark} ANSIBLE MANAGED GEMINI CLI'
       block: |
@@ -55,7 +55,7 @@
           #   1. Interactive: Just run 'gemini' and login with Google
           #   2. API Key: export GEMINI_API_KEY="your_key"
           #   3. Vertex AI: export GOOGLE_API_KEY="your_key" and GOOGLE_GENAI_USE_VERTEXAI=true
-      create: yes
+      create: true
       owner: '{{ target_user }}'
       group: '{{ target_user }}'
       mode: '0644'
@@ -69,17 +69,17 @@
 - name: Check if Claude Code is installed
   command: claude --version
   register: claude_installed
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
-  become: yes
+  become: true
   become_user: '{{ target_user }}'
   when: install_claude_code | default(true)
   tags: claude
 
 - name: Install/Update Claude Code
-  npm:
+  community.general.npm:
       name: '{{ claude_code_package }}'
-      global: yes
+      global: true
       state: latest
   when:
       - install_claude_code | default(true)
@@ -90,13 +90,13 @@
   command: claude --version
   register: claude_version
   changed_when: false
-  become: yes
+  become: true
   become_user: '{{ target_user }}'
   when: install_claude_code | default(true)
   tags: claude
 
 - name: Display Claude Code version
-  debug:
+  ansible.builtin.debug:
       msg: 'Claude Code installed: {{ claude_version.stdout_lines[0] }}'
   when:
       - install_claude_code | default(true)
@@ -105,14 +105,14 @@
   tags: claude
 
 - name: Add Claude Code information to .bashrc
-  blockinfile:
+  ansible.builtin.blockinfile:
       path: '/home/{{ target_user }}/.bashrc'
       marker: '# {mark} ANSIBLE MANAGED CLAUDE CODE'
       block: |
           # Claude Code - Anthropic's AI coding assistant
           # Run 'claude' to start the interactive CLI
           # Documentation: https://code.claude.com/docs
-      create: yes
+      create: true
       owner: '{{ target_user }}'
       group: '{{ target_user }}'
       mode: '0644'
@@ -126,19 +126,19 @@
 - name: Check if Opencode is installed
   command: opencode --version
   register: opencode_installed
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
-  become: yes
+  become: true
   become_user: '{{ target_user }}'
   when: install_opencode | default(true)
   tags: opencode
 
 # Method 1: Install Opencode via npm
 - name: Install/Update Opencode via npm
-  npm:
+  community.general.npm:
       name: '{{ opencode_package }}'
       version: '{{ opencode_version }}'
-      global: yes
+      global: true
       state: "{{ 'latest' if opencode_version == 'latest' else 'present' }}"
   when:
       - install_opencode | default(true)
@@ -157,13 +157,13 @@
       - name: Download and execute Opencode install script
         shell: |
             curl -fsSL {{ opencode_install_script }} | bash
-        become: yes
+        become: true
         become_user: '{{ target_user }}'
         args:
             creates: '/home/{{ target_user }}/.opencode/bin/opencode'
 
 - name: Check if Opencode is now installed (in user home)
-  stat:
+  ansible.builtin.stat:
       path: '/home/{{ target_user }}/.opencode/bin/opencode'
   register: opencode_final_check
   when: install_opencode | default(true)
@@ -173,8 +173,8 @@
   command: '/home/{{ target_user }}/.opencode/bin/opencode --version'
   register: opencode_version_output
   changed_when: false
-  ignore_errors: yes
-  become: yes
+  ignore_errors: true
+  become: true
   become_user: '{{ target_user }}'
   when:
       - install_opencode | default(true)
@@ -186,16 +186,16 @@
   command: opencode --version
   register: opencode_version_output_npm
   changed_when: false
-  become: yes
+  become: true
   become_user: '{{ target_user }}'
-  ignore_errors: yes
+  ignore_errors: true
   when:
       - install_opencode | default(true)
       - opencode_install_method == "npm"
   tags: opencode
 
 - name: Display Opencode version (script method)
-  debug:
+  ansible.builtin.debug:
       msg: 'Opencode installed: {{ opencode_version_output.stdout_lines[0] }}'
   when:
       - install_opencode | default(true)
@@ -206,7 +206,7 @@
   tags: opencode
 
 - name: Display Opencode version (npm method)
-  debug:
+  ansible.builtin.debug:
       msg: 'Opencode installed: {{ opencode_version_output_npm.stdout_lines[0] }}'
   when:
       - install_opencode | default(true)
@@ -217,7 +217,7 @@
   tags: opencode
 
 - name: Display Opencode installation note
-  debug:
+  ansible.builtin.debug:
       msg: 'Opencode installed at /home/{{ target_user }}/.opencode/bin/opencode. PATH updated in .bashrc automatically.'
   when:
       - install_opencode | default(true)
@@ -226,7 +226,7 @@
   tags: opencode
 
 - name: Add Opencode information to .bashrc
-  blockinfile:
+  ansible.builtin.blockinfile:
       path: '/home/{{ target_user }}/.bashrc'
       marker: '# {mark} ANSIBLE MANAGED OPENCODE INFO'
       block: |
@@ -234,7 +234,7 @@
           # The install script has already added ~/.opencode/bin to PATH
           # Run 'opencode' to start the CLI
           # Documentation: https://opencode.ai/docs
-      create: yes
+      create: true
       owner: '{{ target_user }}'
       group: '{{ target_user }}'
       mode: '0644'

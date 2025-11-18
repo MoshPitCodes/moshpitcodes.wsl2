@@ -17,7 +17,7 @@
 
   pre_tasks:
     - name: Display SSH keys configuration
-      debug:
+      ansible.builtin.debug:
         msg:
           - "SSH Keys Configuration"
           - "Copy SSH keys: {{ copy_ssh_keys }}"
@@ -25,18 +25,18 @@
           - "Target user: {{ target_user }}"
 
     - name: Verify source directory exists
-      stat:
+      ansible.builtin.stat:
         path: "{{ ssh_keys_source }}"
       register: source_check
       when: copy_ssh_keys | default(false)
 
     - name: Display source directory status
-      debug:
+      ansible.builtin.debug:
         msg: "Source directory exists: {{ source_check.stat.exists | default('N/A - copy_ssh_keys is disabled') }}"
       when: copy_ssh_keys | default(false)
 
     - name: Fail if source directory doesn't exist
-      fail:
+      ansible.builtin.fail:
         msg: |
           SSH keys source directory not found!
           Path: {{ ssh_keys_source }}
@@ -55,7 +55,7 @@
 
   post_tasks:
     - name: Display completion message
-      debug:
+      ansible.builtin.debug:
         msg:
           - "=========================================="
           - "  SSH Keys Setup Complete!"
@@ -65,7 +65,7 @@
       when: copy_ssh_keys | default(false)
 
     - name: Display skip message
-      debug:
+      ansible.builtin.debug:
         msg:
           - "SSH key copying is disabled"
           - "Set copy_ssh_keys: true in vars/user_environment.yml to enable"

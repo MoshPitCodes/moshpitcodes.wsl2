@@ -3,7 +3,7 @@
 # Installs and configures Docker and Docker Compose
 
 - name: Install prerequisites for Docker
-  apt:
+  ansible.builtin.apt:
     name:
       - ca-certificates
       - curl
@@ -13,14 +13,14 @@
   tags: docker
 
 - name: Create keyrings directory
-  file:
+  ansible.builtin.file:
     path: /etc/apt/keyrings
     state: directory
     mode: '0755'
   tags: docker
 
 - name: Add Docker GPG key
-  apt_key:
+  ansible.builtin.apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
     keyring: /etc/apt/keyrings/docker.gpg
     state: present
@@ -33,14 +33,14 @@
   tags: docker
 
 - name: Add Docker repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ubuntu_codename.stdout }} stable"
     state: present
     filename: docker
   tags: docker
 
 - name: Install Docker
-  apt:
+  ansible.builtin.apt:
     name:
       - docker-ce
       - docker-ce-cli
@@ -48,34 +48,34 @@
       - docker-buildx-plugin
       - docker-compose-plugin
     state: present
-    update_cache: yes
+    update_cache: true
   tags: docker
 
 - name: Ensure Docker service is enabled
-  systemd:
+  ansible.builtin.systemd:
     name: docker
-    enabled: yes
+    enabled: true
     state: started
-  ignore_errors: yes  # WSL might not use systemd
+  ignore_errors: true  # WSL might not use systemd
   tags: docker
 
 - name: Add user to docker group
-  user:
+  ansible.builtin.user:
     name: "{{ target_user }}"
     groups: docker
-    append: yes
+    append: true
   when: docker_add_user_to_group | default(true)
   tags: docker
 
 - name: Create Docker daemon configuration directory
-  file:
+  ansible.builtin.file:
     path: /etc/docker
     state: directory
     mode: '0755'
   tags: docker
 
 - name: Configure Docker daemon
-  copy:
+  ansible.builtin.copy:
     content: "{{ docker_daemon_config | to_nice_json }}"
     dest: /etc/docker/daemon.json
     mode: '0644'
@@ -90,12 +90,12 @@
   tags: docker
 
 - name: Display Docker version
-  debug:
+  ansible.builtin.debug:
     msg: "{{ docker_version.stdout }}"
   tags: docker
 
 - name: Create docker-compose wrapper for compatibility
-  copy:
+  ansible.builtin.copy:
     content: |
       #!/bin/bash
       docker compose "$@"
@@ -110,14 +110,14 @@
   tags: docker
 
 - name: Show Docker Compose version
-  debug:
+  ansible.builtin.debug:
     msg: "{{ compose_version.stdout }}"
   tags: docker
 
 - name: WSL-specific Docker configuration
   block:
     - name: Check if WSL environment
-      stat:
+      ansible.builtin.stat:
         path: /proc/sys/fs/binfmt_misc/WSLInterop
       register: wsl_check
 
@@ -141,7 +141,7 @@
   tags: docker
 
 - name: Display post-installation message
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Docker installation complete!"
       - "Note: You may need to log out and back in for group changes to take effect"

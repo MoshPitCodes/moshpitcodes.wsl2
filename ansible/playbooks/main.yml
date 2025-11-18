@@ -20,7 +20,7 @@
 
   pre_tasks:
     - name: Display environment information
-      debug:
+      ansible.builtin.debug:
         msg:
           - "Configuring WSL2 development environment"
           - "Target: {{ ansible_hostname }}"
@@ -29,8 +29,8 @@
       tags: always
 
     - name: Update apt cache
-      apt:
-        update_cache: yes
+      ansible.builtin.apt:
+        update_cache: true
         cache_valid_time: 3600
       tags: always
 
@@ -64,13 +64,13 @@
 
   post_tasks:
     - name: Clean up apt cache
-      apt:
-        autoclean: yes
-        autoremove: yes
+      ansible.builtin.apt:
+        autoclean: true
+        autoremove: true
       tags: cleanup
 
     - name: Display completion message
-      debug:
+      ansible.builtin.debug:
         msg:
           - "=========================================="
           - "  WSL2 Setup Complete!"
