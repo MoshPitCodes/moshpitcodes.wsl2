@@ -49,6 +49,7 @@ install_golang: true
 install_rust: true
 install_docker: true
 install_doppler: true
+install_nix: false
 nodejs_version: "24.11.1"
 golang_version: "1.25.4"
 docker_compose_version: "2.40.3"
@@ -113,6 +114,28 @@ doppler login
 doppler setup
 ```
 
+### Nix Package Manager
+
+```bash
+# Search for packages
+nix search nixpkgs <package-name>
+
+# Install a package temporarily
+nix shell nixpkgs#<package-name>
+
+# Install a package to user profile
+nix profile install nixpkgs#<package-name>
+
+# List installed packages
+nix profile list
+
+# Update all packages
+nix profile upgrade '.*'
+
+# Check Nix version
+nix --version
+```
+
 ### Docker
 
 ```bash
@@ -157,6 +180,7 @@ gpg --list-secret-keys
 kubectl version --client
 terraform version
 doppler --version
+nix --version
 ```
 
 ## Available Tags
@@ -173,7 +197,7 @@ Tags correspond to roles in the main playbook:
 - `ai-tools` - AI/ML tools and frameworks
 - `cleanup` - Cleanup tasks (apt autoclean/autoremove)
 
-**Granular Tags:** Additional tags are available for specific components: `python`, `nodejs`, `golang`, `rust`, `ruby`, `doppler`, `git`, `shell`, `packages`, `security`, `performance`, `kubectl`, `terraform`, `talosctl`, `claude`, `gemini`, `opencode`. Use `ansible-playbook --list-tags playbooks/main.yml` to see all available tags.
+**Granular Tags:** Additional tags are available for specific components: `python`, `nodejs`, `golang`, `rust`, `ruby`, `doppler`, `nix`, `git`, `shell`, `packages`, `security`, `performance`, `kubectl`, `terraform`, `talosctl`, `claude`, `gemini`, `opencode`. Use `ansible-playbook --list-tags playbooks/main.yml` to see all available tags.
 
 ## Troubleshooting
 

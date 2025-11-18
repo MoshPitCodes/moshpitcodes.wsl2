@@ -52,6 +52,9 @@ install_kubernetes_tools: true
 # Install Doppler CLI for secrets management
 install_doppler: true
 
+# Install Nix package manager
+install_nix: false
+
 # Install AI-powered CLI tools (Gemini, Claude Code, Opencode)
 install_ai_tools: true
 

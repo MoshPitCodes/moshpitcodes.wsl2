@@ -232,3 +232,87 @@
     - install_doppler | default(false)
     - doppler_version_output is defined
   tags: doppler
+
+# ============================================================================
+# Nix Package Manager Installation
+# ============================================================================
+
+- name: Check if Nix is installed
+  ansible.builtin.stat:
+    path: /nix/var/nix/profiles/default/bin/nix
+  register: nix_installed
+  when: install_nix | default(false)
+  tags: nix
+
+- name: Install Nix package manager
+  when:
+    - install_nix | default(false)
+    - not nix_installed.stat.exists
+  tags: nix
+  block:
+    - name: Download Nix installer
+      ansible.builtin.get_url:
+        url: https://nixos.org/nix/install
+        dest: /tmp/nix-install.sh
+        mode: '0755'
+
+    - name: Run Nix installer (multi-user mode)
+      ansible.builtin.shell: |
+        sh /tmp/nix-install.sh --daemon --yes
+      args:
+        creates: /nix/var/nix/profiles/default/bin/nix
+      environment:
+        NIX_INSTALLER_NO_MODIFY_PROFILE: "1"
+
+    - name: Remove Nix installer script
+      ansible.builtin.file:
+        path: /tmp/nix-install.sh
+        state: absent
+
+- name: Configure Nix for user
+  ansible.builtin.blockinfile:
+    path: "/home/{{ target_user }}/.bashrc"
+    marker: "# {mark} ANSIBLE MANAGED NIX PATH"
+    block: |
+      # Nix package manager
+      if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+        . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+      fi
+    create: true
+    owner: "{{ target_user }}"
+    group: "{{ target_user }}"
+    mode: '0644'
+  when: install_nix | default(false)
+  tags: nix
+
+- name: Enable nix-daemon service
+  ansible.builtin.systemd:
+    name: nix-daemon
+    enabled: true
+    state: started
+  when:
+    - install_nix | default(false)
+    - not nix_installed.stat.exists
+  ignore_errors: true
+  tags: nix
+
+- name: Verify Nix installation
+  ansible.builtin.shell: |
+    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+    nix --version
+  register: nix_version_output
+  changed_when: false
+  when:
+    - install_nix | default(false)
+    - nix_installed.stat.exists or (nix_installed is defined and not nix_installed.stat.exists)
+  ignore_errors: true
+  tags: nix
+
+- name: Display Nix version
+  ansible.builtin.debug:
+    msg: "Nix package manager installed: {{ nix_version_output.stdout }}"
+  when:
+    - install_nix | default(false)
+    - nix_version_output is defined
+    - nix_version_output.stdout is defined
+  tags: nix
