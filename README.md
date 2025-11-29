@@ -295,36 +295,34 @@ For detailed SSH and GPG setup, see:
 
 ```mermaid
 graph TD
-    Windows["<b>Windows 11 Host System</b>"]
+    subgraph Windows["Windows 11 Host System"]
+        subgraph PowerShell["PowerShell Automation Layer"]
+            PS1["01-Install-WSL2.ps1<br/>(WSL2 Installation)"]
+            PS2["02-Configure-WSL2.ps1<br/>(.wslconfig Management)"]
+        end
 
-    subgraph PowerShell["PowerShell Automation Layer"]
-        PS1["01-Install-WSL2.ps1<br/>(WSL2 Installation)"]
-        PS2["02-Configure-WSL2.ps1<br/>(.wslconfig Management)"]
+        subgraph WSL2["WSL2 Instance"]
+            subgraph Ubuntu["Ubuntu Development Environment"]
+                subgraph Ansible["Ansible Configuration Layer"]
+                    Bootstrap["bootstrap.sh → Ansible Installation"]
+                    Playbook["playbooks/main.yml → Main Orchestration"]
+                end
+
+                subgraph Roles["Ansible Roles"]
+                    direction LR
+                    Common["common<br/>(base system)"]
+                    SSH["ssh-keys<br/>(key management)"]
+                    GPG["gpg-keys<br/>(GPG setup)"]
+                    Dev["development<br/>(languages & tools)"]
+                    Docker["docker<br/>(containerization)"]
+                    K8s["kubernetes-tools<br/>(orchestration)"]
+                    AI["ai-tools<br/>(AI assistants)"]
+                end
+            end
+        end
     end
 
-    WSL2["WSL2 Instance"]
-    Ubuntu["Ubuntu Development Environment"]
-
-    subgraph Ansible["Ansible Configuration Layer"]
-        Bootstrap["bootstrap.sh → Ansible Installation"]
-        Playbook["playbooks/main.yml → Main Orchestration"]
-    end
-
-    subgraph Roles["Ansible Roles"]
-        direction LR
-        Common["common<br/>(base system)"]
-        SSH["ssh-keys<br/>(key management)"]
-        GPG["gpg-keys<br/>(GPG setup)"]
-        Dev["development<br/>(languages & tools)"]
-        Docker["docker<br/>(containerization)"]
-        K8s["kubernetes-tools<br/>(orchestration)"]
-        AI["ai-tools<br/>(AI assistants)"]
-    end
-
-    Windows --> PowerShell
     PowerShell --> WSL2
-    WSL2 --> Ubuntu
-    Ubuntu --> Ansible
     Ansible --> Roles
 
     style Windows fill:#282828,stroke:#FABD2F,stroke-width:3px,color:#EBDBB2
