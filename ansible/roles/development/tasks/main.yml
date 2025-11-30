@@ -402,6 +402,9 @@
       ansible.builtin.apt:
         name: gh
         state: present
+        force_apt_get: true
+      environment:
+        DEBIAN_FRONTEND: noninteractive
 
 - name: Verify GitHub CLI installation
   ansible.builtin.command: gh --version
