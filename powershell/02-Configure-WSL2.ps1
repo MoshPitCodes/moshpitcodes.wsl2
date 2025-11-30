@@ -118,7 +118,7 @@ localhostForwarding=$($LocalhostForwarding.ToString().ToLower())
 # Nested virtualization support
 # Allows running VMs inside WSL2 (requires CPU support)
 # Default: true
-# nestedVirtualization=true
+nestedVirtualization=true
 
 # Enable debug console
 # Default: false
@@ -126,7 +126,7 @@ localhostForwarding=$($LocalhostForwarding.ToString().ToLower())
 
 # GUI applications support (WSLg)
 # Default: true
-# guiApplications=true
+guiApplications=true
 
 # DNS tunneling (for VPN compatibility)
 # Default: false
