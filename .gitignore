@@ -54,6 +54,8 @@ vault-password.txt
 *.tmp
 *.bak
 *.backup
+*tmp/
+*temp/
 
 # User-specific configurations
 # Uncomment if you don't want to share your personal settings
