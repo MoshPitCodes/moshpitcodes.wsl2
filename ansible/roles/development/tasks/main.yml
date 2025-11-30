@@ -394,15 +394,12 @@
         filename: github-cli
         state: present
 
-    - name: Update apt cache
-      ansible.builtin.apt:
-        update_cache: true
-
-    - name: Install GitHub CLI
-      ansible.builtin.apt:
-        name: gh
-        state: present
-        force_apt_get: true
+    - name: Update apt cache and install GitHub CLI
+      ansible.builtin.shell: |
+        apt-get update
+        apt-get install -y gh
+      args:
+        creates: /usr/bin/gh
       environment:
         DEBIAN_FRONTEND: noninteractive
 
